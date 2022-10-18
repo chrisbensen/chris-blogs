@@ -2,13 +2,13 @@
 
 by [Chris Bensen](https://twitter.com/chrisbensen)
 
-If you prefer you can read this blog post on Medium [here]().
+If you prefer you can read this blog post on Medium [here](https://medium.com/oracledevs/the-seven-step-process-to-creating-an-amazing-demo-ed89efca0dcd).
 
 The Raspberry Pi Super Computer was originally built for Oracle Open World in October 2019. There are 1050 Raspberry Pi 3b+ in four server racks configured in a big square box reminiscent of a British police box popularized in a certain BBC TV series. Fast forward to today, and The Raspberry Pi Super Computer (Pi Cluster) was sent to e-waste, some parts stripped off it, and sat dormant for two years until May of this year, when it found its way to my garage for a complete overhaul.
 
 ![The Raspberry Pi Super Computer Rendering](images/CodeOneSF2019-70.jpg)
 
-For a temporal history of how 1050 Raspberry Pi came to be, you can read [A Temporal History of The World's Largest Raspberry Pi Cluster](https://medium.com/chrisbensen/a-temporal-history-of-the-worlds-largest-raspberry-pi-cluster-that-we-know-of-4e4b1e214bdd). 
+For a temporal history of how 1050 Raspberry Pi came to be, you can read [A Temporal History of The World's Largest Raspberry Pi Cluster](https://medium.com/chrisbensen/a-temporal-history-of-the-worlds-largest-raspberry-pi-cluster-that-we-know-of-4e4b1e214bdd).
 
 It begins with Gerald Venzl at Oracle Switzerland bringing the 12-node cluster to my attention, then we brainstormed a big cluster with Stephen Chin. Learn how the Pi Cluster went to e-waste during COVID lockdowns and the California fires and how Eric Sedlar rescued it, eventually storing it at Oracle Labs. If you find that too long, watch the  [original build video of The World's Largest Raspberry Pi Cluster that we know of](https://www.youtube.com/watch?v=KbVcRQQ9PNw), this [Building the world's largest Raspberry Pi cluster](https://blogs.oracle.com/developers/post/building-the-worlds-largest-raspberry-pi-cluster) by Gerald Venzl and this video [Big Pi Cluster In My Garage - Part I](https://www.youtube.com/watch?v=ELvkg_88XSY).
 
@@ -28,7 +28,7 @@ The first step was to identify a budget and an estimate of the work to see if it
 1. Fans. Lots of fans.
 2. To replace any parts missing.
 3. To test everything out.
-4. To write new software. Every Pi network boots. In 2019 I had Oracle Linux 7 running on the entire cluster, but did it still work? Did we have all the source code, MAC addresses, and everything needed to do it again? 
+4. To write new software. Every Pi network boots. In 2019 I had Oracle Linux 7 running on the entire cluster, but did it still work? Did we have all the source code, MAC addresses, and everything needed to do it again?
 
 The second step was to get a place to work on the Pi Cluster. Try finding a place with double doors, close to a freight elevator, with enough power and space to work on it, and a network that isn't locked down tight — not easy! I looked at Oracle facilities around the world. The logistics of working on something like this remotely and all the physical work that would have to be put into it meant anywhere in the world would work only if certain requirements were met. I'd have to travel there, set everything up, and have a dozen people to help. We'd set it up for remote access but someone would have to be available in person when things didn't work right. After a nice lunch with my amazing wife, we decided our garage worked the best, and that's where [#BigPiClusterInMyGarage](https://twitter.com/search?q=%23BigPiClusterInMyGarage&src=typed_query) started.
 
@@ -44,7 +44,7 @@ I think a lot of us underestimate the value of a good operating system when buil
 
 All the software is open source and can be found [here](https://github.com/oracle-devrel/picluster) in our DevRel GitHub repository. There are some things coming from the labs and aren't available even as a tech preview (I tried, they just weren't ready) so those aren't included. Be warned, most of that code was written quickly. What you find might not make a whole lot of sense, so let me explain.
 
-First, there's the software on the cluster. The server runs a Docker container comprised of GraalPython on top of [GraalVM](https://www.oracle.com/java/graalvm/?source=:ex:tb:::::RC_WWMK220210P00062:Medium_CBensen_Pi_DevNucleaus&SC=:ex:tb:::::RC_WWMK220210P00062:Medium_CBensen_Pi_DevNucleaus&pcode=WWMK220210P00062). That ``Dockerfile`` is undergoing continuous improvement so I don't recommend copying it just yet. I've provided some bug reports, but as soon as the Graal environment variables and CTRL+C work (and maybe a new image for GraalPython is created) you'll want to dive right in. Meanwhile, know that this is one way of doing it. I've been seeing about a 50% increase in performance when running Python code under GraalVM. That's pretty impressive!
+First, there's the software on the cluster. The server runs a Docker container comprised of GraalPython on top of [GraalVM](https://www.oracle.com/java/graalvm/?source=:ex:tb:::::RC_WWMK220210P00062:Medium_CBensen_Pi_DevNucleaus&SC=:ex:tb:::::RC_WWMK220210P00062:Medium_CBensen_Pi_DevNucleaus&pcode=WWMK220210P00062). That ``Dockerfile`` is undergoing continuous improvement so I don't recommend copying it just yet. I've provided some bug reports, but as soon as the Graal environment variables and CTRL+C work (and maybe a new image for GraalPython is created) you'll want to dive right in. Meanwhile, know that this is one way of doing it. I've been seeing about a [8x increase in performance when running pure Python code under GraalVM](https://www.graalvm.org/python/). That's pretty impressive!
 
 Every device on the cluster runs a web service. The server broadcasts a UDP message with its IP address and port for any device to listen to and communicates with the server for auto discovery. This is new from previous years where the server's IP address was put into an environment variable. The IP address doesn't change so we could hard code it but there were two issues: Anyone working on this needs to run a test system with their desktop and a simulation of a Pi or a couple of Pis on their desk, and the environment variables are lost once you sudo. This actually solves a lot of issues! Once a Pi boots up it runs its web server, listens for the UDP message, registers its IP address and MAC address with the server, and listens for work. At intervals, the server will send a ping to each Pi as a health check to make sure they should be in the list of available Pi.
 
@@ -73,7 +73,7 @@ If you have any questions about this head over to Oracle's public [Slack channel
 
 # IoT - Specific Lightweight Tasks with Small Inexpensive Microcontrollers
 
-We also have a pair of Arduinos running on the cluster. The first Arduino is an Arduino Mega with an Ethernet HAT. The original code can be found [here](https://github.com/oracle-devrel/picluster/tree/main/source/arduino/ServerSwitch). It runs a web service and turns on two solenoids for remote access to the physical reset and power buttons on the server. I've changed the software a bit compared to the repository and didn't publish yet, so I left this older version up. The version I haven't published registers itself and waits for a simple startup command when a developer SSHs into the Bastion. 
+We also have a pair of Arduinos running on the cluster. The first Arduino is an Arduino Mega with an Ethernet HAT. The original code can be found [here](https://github.com/oracle-devrel/picluster/tree/main/source/arduino/ServerSwitch). It runs a web service and turns on two solenoids for remote access to the physical reset and power buttons on the server. I've changed the software a bit compared to the repository and didn't publish yet, so I left this older version up. The version I haven't published registers itself and waits for a simple startup command when a developer SSHs into the Bastion.
 
 The second Arduino is the same hardware but runs a REST server listening for a JSON payload and is connected to a dozen [NeoPixels](https://www.adafruit.com/product/1426) in the light at the top of the police box.
 
